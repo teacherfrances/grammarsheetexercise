@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Check: Tenses and Modals for Everyday Messages</title>
+<style>
+  :root {
+    --navy: #1F3864;
+    --navy-dark: #142848;
+    --teal: #0F6B65;
+    --teal-light: #E4F1EF;
+    --amber: #B5651D;
+    --amber-light: #FBEEE0;
+    --green: #1E7B34;
+    --green-light: #E4F5E8;
+    --red: #B3261E;
+    --red-light: #FBE9E8;
+    --ink: #1A1A1A;
+    --white: #FFFFFF;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #eef4f3 0%, #e4ecec 100%);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--ink);
+    font-size: 18px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  header.app-header { text-align: center; margin-bottom: 18px; }
+  header.app-header h1 {
+    margin: 0 0 8px; color: var(--navy);
+    font-size: clamp(26px, 5.5vw, 38px); font-weight: 800;
+  }
+  header.app-header p.sub { margin: 0; color: #33474f; font-size: 19px; font-style: italic; }
+
+  .scorebar {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--navy); color: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+  }
+  .scorebar .score-num { color: #9FE3D8; }
+  .tryagain-btn {
+    min-height: 48px; padding: 0 20px;
+    border-radius: 10px; border: 2px solid var(--white);
+    background: var(--navy); color: var(--white);
+    font-weight: 700; font-size: 17px; cursor: pointer;
+  }
+  .tryagain-btn:hover { background: var(--white); color: var(--navy); }
+
+  .intro-note {
+    background: var(--white); border-left: 8px solid var(--amber);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 22px;
+    font-size: 18px; line-height: 1.5;
+  }
+  .intro-note strong { color: var(--amber); }
+
+  section.qsection { margin-bottom: 30px; }
+  .section-head {
+    background: var(--teal); color: var(--white);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 14px 18px;
+    font-size: 22px; font-weight: 800;
+  }
+  .section-head .section-hint {
+    display: block; font-size: 15px; font-weight: 400; font-style: italic;
+    color: #D9F0EC; margin-top: 4px;
+  }
+  .section-body {
+    background: var(--white);
+    border: 2px solid var(--teal); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 18px;
+  }
+
+  .item { padding: 14px 0; border-bottom: 1px solid #e4e9e8; }
+  .item:last-child { border-bottom: none; }
+  .item-q { font-size: 19px; font-weight: 600; margin-bottom: 12px; line-height: 1.5; }
+  .item-q .num { color: var(--navy); font-weight: 800; }
+
+  .choice-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .choice-btn {
+    min-height: 48px; padding: 8px 18px;
+    border-radius: 10px; border: 2px solid var(--navy);
+    background: var(--white); color: var(--navy);
+    font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .choice-btn:hover:not(:disabled) { background: var(--teal-light); }
+  .choice-btn:disabled { cursor: default; }
+  .choice-btn.correct { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .choice-btn.incorrect { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+  .text-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .text-input {
+    min-height: 48px; padding: 8px 14px; font-size: 19px;
+    border: 2px solid var(--navy); border-radius: 10px;
+    font-family: inherit; flex: 1 1 220px;
+  }
+  .text-input.correct { border-color: var(--green); background: var(--green-light); }
+  .text-input.incorrect { border-color: var(--red); background: var(--red-light); }
+  .check-btn {
+    min-height: 48px; padding: 0 18px; border-radius: 10px;
+    border: none; background: var(--teal); color: var(--white);
+    font-size: 17px; font-weight: 700; cursor: pointer;
+  }
+  .check-btn:hover:not(:disabled) { background: #0a4d48; }
+  .check-btn:disabled { opacity: 0.5; cursor: default; }
+
+  select.dd-input {
+    min-height: 48px; padding: 8px 12px; font-size: 19px;
+    border: 2px solid var(--navy); border-radius: 10px;
+    font-family: inherit; background: var(--white);
+  }
+  select.dd-input.correct { border-color: var(--green); background: var(--green-light); }
+  select.dd-input.incorrect { border-color: var(--red); background: var(--red-light); }
+
+  .feedback { margin-top: 8px; font-size: 17px; font-weight: 700; }
+  .feedback.correct { color: var(--green); }
+  .feedback.incorrect { color: var(--red); }
+
+  .answerkey {
+    background: var(--white); border: 2px solid var(--navy);
+    border-radius: var(--radius); padding: 20px; margin-top: 10px;
+  }
+  .answerkey h2 { color: var(--navy); font-size: 24px; margin: 0 0 14px; }
+  .answerkey h3 { color: var(--teal); font-size: 19px; margin: 18px 0 8px; }
+  .answerkey p { font-size: 16px; line-height: 1.6; margin: 0 0 8px; color: #333; }
+  .answerkey summary {
+    cursor: pointer; font-size: 20px; font-weight: 800; color: var(--navy);
+    padding: 10px 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-width: 480px) {
+    body { font-size: 17px; }
+    .scorebar { font-size: 17px; padding: 12px 14px; }
+    .section-head { font-size: 19px; }
+    .item-q { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-header">
+    <h1>Grammar Check: Tenses and Modals</h1>
+    <p class="sub">Everyday messages: texts, emails and notices</p>
+  </header>
+
+  <div class="scorebar">
+    <span>Score: <span class="score-num" id="scoreNum">0</span> / 60</span>
+    <button class="tryagain-btn" id="tryAgainBtn" type="button">Try again</button>
+  </div>
+
+  <div class="intro-note">
+    <strong>How this works:</strong> Each section checks a different tense or modal, using a different way to answer (buttons, typing, true or false, a dropdown, or word chips). Answer each question and you will see straight away if you were right. A full answer key is at the end of the page.
+  </div>
+
+  <div id="sectionsHost"></div>
+
+  <div class="answerkey" id="answerKeyHost"></div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SECTIONS = [
+    {
+      id: "present",
+      title: "1. Simple Present",
+      hint: "Multiple choice: click the correct answer.",
+      type: "mcq",
+      items: [
+        { q: "My clinic ______ reminder texts every week.", options: ["sent", "sends", "is sending"], correct: 1 },
+        { q: "I ______ my email every morning before work.", options: ["checked", "am checking", "check"], correct: 2 },
+        { q: "The real estate agent usually ______ emails on weekdays.", options: ["sends", "sent", "is sending"], correct: 0 },
+        { q: "Most people ______ notices by post.", options: ["received", "receive", "are receiving"], correct: 1 },
+        { q: "This clinic ______ appointments by text message, as a rule.", options: ["is confirming", "confirmed", "confirms"], correct: 2 },
+        { q: "I ______ my messages every night before bed.", options: ["will read", "read", "am reading"], correct: 1 },
+        { q: "The pharmacy ______ a text when a prescription is ready.", options: ["sent", "is sending", "sends"], correct: 2 },
+        { q: "We ______ a bill once a month from the electricity company.", options: ["get", "got", "are getting"], correct: 0 },
+        { q: "He ______ his emails first thing every morning.", options: ["is checking", "checked", "checks"], correct: 2 },
+        { q: "The dentist's office ______ reminders the day before your visit.", options: ["sends", "sent", "is sending"], correct: 0 }
+      ]
+    },
+    {
+      id: "continuous",
+      title: "2. Present Continuous",
+      hint: "Type the answer: complete the sentence with the verb in brackets.",
+      type: "text",
+      items: [
+        { q: "Right now, I ______ (read) a text from my doctor.", answer: "am reading" },
+        { q: "She ______ (wait) for a reply from the agent at the moment.", answer: "is waiting" },
+        { q: "Look, the phone ______ (ring) right now!", answer: "is ringing" },
+        { q: "We ______ (check) our emails together right now.", answer: "are checking" },
+        { q: "He ______ (write) a reply to the clinic at the moment.", answer: "is writing" },
+        { q: "I ______ (read) the notice on the board right now.", answer: "am reading" },
+        { q: "They ______ (discuss) the appointment time at the moment.", answer: "are discussing" },
+        { q: "The agent ______ (call) me right now about the lease.", answer: "is calling" },
+        { q: "I ______ (type) a message to the pharmacy at the moment.", answer: "am typing" },
+        { q: "She ______ (look) at the text message right now.", answer: "is looking" }
+      ]
+    },
+    {
+      id: "past",
+      title: "3. Simple Past",
+      hint: "True or false: does the sentence use the simple past correctly?",
+      type: "truefalse",
+      items: [
+        { q: "\u201cI received a text yesterday.\u201d This sentence uses the simple past correctly.", correct: true },
+        { q: "\u201cI am receive a text yesterday.\u201d This sentence uses the simple past correctly.", correct: false },
+        { q: "\u201cThe clinic called me last week.\u201d This sentence uses the simple past correctly.", correct: true },
+        { q: "\u201cThe clinic call me last week.\u201d This sentence uses the simple past correctly.", correct: false },
+        { q: "\u201cI sent the form on Monday.\u201d This sentence uses the simple past correctly.", correct: true },
+        { q: "\u201cI send the form on Monday.\u201d This sentence uses the simple past correctly.", correct: false },
+        { q: "\u201cShe missed the appointment yesterday.\u201d This sentence uses the simple past correctly.", correct: true },
+        { q: "\u201cShe miss the appointment yesterday.\u201d This sentence uses the simple past correctly.", correct: false },
+        { q: "\u201cWe got the notice last week.\u201d This sentence uses the simple past correctly.", correct: true },
+        { q: "\u201cWe get the notice last week.\u201d This sentence uses the simple past correctly.", correct: false }
+      ]
+    },
+    {
+      id: "will",
+      title: "4. Will",
+      hint: "Two choices: is this WILL (deciding now) or GOING TO (already planned)?",
+      type: "twochoice",
+      items: [
+        { q: "The phone is ringing right now. I ______ answer it.", correct: "WILL" },
+        { q: "I already booked online, so next week I ______ see the doctor.", correct: "GOING TO" },
+        { q: "Okay, I ______ call them back right now.", correct: "WILL" },
+        { q: "I have already packed, so I ______ leave for my appointment soon.", correct: "GOING TO" },
+        { q: "I am not sure yet, but I think I ______ reply later.", correct: "WILL" },
+        { q: "Look at those dark clouds, it ______ rain.", correct: "GOING TO" },
+        { q: "I have already written the reply, I ______ send it now.", correct: "GOING TO" },
+        { q: "I do not know the answer, I ______ ask the teacher.", correct: "WILL" },
+        { q: "She has already decided, she ______ change her appointment.", correct: "GOING TO" },
+        { q: "That looks heavy, I ______ help you carry it.", correct: "WILL" }
+      ]
+    },
+    {
+      id: "goingto",
+      title: "5. Going to",
+      hint: "Dropdown: choose the correct option from the list.",
+      type: "dropdown",
+      items: [
+        { q: "I already have a plan. Next Friday, I ______ the dentist.", options: ["visit", "will visit", "am going to visit"], correct: 2 },
+        { q: "I usually ______ the doctor once a year for a checkup.", options: ["am going to visit", "visit", "will visit"], correct: 1 },
+        { q: "The sky is full of dark clouds, so it ______ rain soon.", options: ["will", "is going to", "is"], correct: 1 },
+        { q: "I have already decided. I ______ change my phone plan this week.", options: ["will", "am going to", "change"], correct: 1 },
+        { q: "Every year, I ______ my dentist for a checkup.", options: ["am going to visit", "visit", "will visit"], correct: 1 },
+        { q: "We already booked the tickets. We ______ fly out on Saturday.", options: ["will", "are going to", "fly"], correct: 1 },
+        { q: "I am not sure what will happen, but I think it ______ be a busy day.", options: ["is going to", "will", "is"], correct: 1 },
+        { q: "Based on the traffic report, we ______ be late.", options: ["will", "are going to", "are"], correct: 1 },
+        { q: "I have already made an appointment. I ______ see the doctor tomorrow.", options: ["will", "am going to", "see"], correct: 1 },
+        { q: "He does not know yet, but he thinks he ______ apply for the job.", options: ["is going to", "will", "applies"], correct: 1 }
+      ]
+    },
+    {
+      id: "modals",
+      title: "6. Modal Verbs",
+      hint: "Word chips: click the correct modal.",
+      type: "chips",
+      chips: ["should", "could", "need to", "might", "would"],
+      items: [
+        { q: "Before you reply to a message, you ______ read it carefully.", correct: "should" },
+        { q: "If you are unsure, you ______ call the office instead of replying by text.", correct: "could" },
+        { q: "To collect your prescription, you ______ bring your Medicare card.", correct: "need to" },
+        { q: "The message has no sender name, so it ______ be spam.", correct: "might" },
+        { q: "If I were you, I ______ reply straight away.", correct: "would" },
+        { q: "You ______ always check the sender's email address before clicking a link.", correct: "should" },
+        { q: "You ______ ask a friend to help you understand the notice.", correct: "could" },
+        { q: "You ______ update your address with the clinic if you move house.", correct: "need to" },
+        { q: "This ______ be an important message, or it might be nothing.", correct: "might" },
+        { q: "______ you mind checking this message for me?", correct: "would" }
+      ]
+    }
+  ];
+
+  var totalScore = 0;
+  var scoreNumEl = document.getElementById("scoreNum");
+
+  function bumpScore(delta) {
+    totalScore += delta;
+    scoreNumEl.textContent = totalScore;
+  }
+
+  function letter(i) { return String.fromCharCode(97 + i); }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function renderMCQ(item, idx) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "choice-row";
+    var buttons = [];
+    item.options.forEach(function (opt, oi) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = letter(oi) + ") " + opt;
+      btn.addEventListener("click", function () {
+        var isRight = oi === item.correct;
+        buttons.forEach(function (b, bi) {
+          b.disabled = true;
+          if (bi === item.correct) { b.classList.add("correct"); }
+        });
+        if (!isRight) { btn.classList.add("incorrect"); }
+        bumpScore(isRight ? 1 : 0);
+      });
+      buttons.push(btn);
+      row.appendChild(btn);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function renderTwoChoice(item, idx) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "choice-row";
+    var labels = ["WILL", "GOING TO"];
+    var buttons = [];
+    labels.forEach(function (label) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = label;
+      btn.addEventListener("click", function () {
+        var isRight = label === item.correct;
+        buttons.forEach(function (b) {
+          b.disabled = true;
+          if (b.textContent === item.correct) { b.classList.add("correct"); }
+        });
+        if (!isRight) { btn.classList.add("incorrect"); }
+        bumpScore(isRight ? 1 : 0);
+      });
+      buttons.push(btn);
+      row.appendChild(btn);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function renderChips(item, idx, chipList) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "choice-row";
+    var buttons = [];
+    chipList.forEach(function (chip) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = chip;
+      btn.addEventListener("click", function () {
+        var isRight = chip === item.correct;
+        buttons.forEach(function (b) {
+          b.disabled = true;
+          if (b.textContent === item.correct) { b.classList.add("correct"); }
+        });
+        if (!isRight) { btn.classList.add("incorrect"); }
+        bumpScore(isRight ? 1 : 0);
+      });
+      buttons.push(btn);
+      row.appendChild(btn);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function renderTrueFalse(item, idx) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "choice-row";
+    var buttons = [];
+    [true, false].forEach(function (val) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice-btn";
+      btn.textContent = val ? "True" : "False";
+      btn.addEventListener("click", function () {
+        var isRight = val === item.correct;
+        buttons.forEach(function (b, bi) {
+          b.disabled = true;
+          if ((bi === 0) === item.correct) { b.classList.add("correct"); }
+        });
+        if (!isRight) { btn.classList.add("incorrect"); }
+        bumpScore(isRight ? 1 : 0);
+      });
+      buttons.push(btn);
+      row.appendChild(btn);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function normalise(s) {
+    return s.toLowerCase().trim().replace(/\s+/g, " ").replace(/^i'm/, "i am").replace(/'/g, "");
+  }
+
+  function renderText(item, idx) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "text-row";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.className = "text-input";
+    input.setAttribute("aria-label", "Your answer");
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "check-btn";
+    btn.textContent = "Check";
+    var fb = document.createElement("div");
+    fb.className = "feedback";
+
+    function doCheck() {
+      if (input.disabled) { return; }
+      var isRight = normalise(input.value) === normalise(item.answer);
+      input.disabled = true;
+      btn.disabled = true;
+      input.classList.add(isRight ? "correct" : "incorrect");
+      fb.textContent = isRight ? "Correct!" : "Not quite. The answer is: " + item.answer;
+      fb.className = "feedback " + (isRight ? "correct" : "incorrect");
+      bumpScore(isRight ? 1 : 0);
+    }
+    btn.addEventListener("click", doCheck);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { doCheck(); }
+    });
+
+    row.appendChild(input);
+    row.appendChild(btn);
+    wrap.appendChild(row);
+    wrap.appendChild(fb);
+    return wrap;
+  }
+
+  function renderDropdown(item, idx) {
+    var wrap = document.createElement("div");
+    wrap.className = "item";
+    var qEl = document.createElement("div");
+    qEl.className = "item-q";
+    qEl.innerHTML = '<span class="num">' + (idx + 1) + '.</span> ' + escapeHtml(item.q);
+    wrap.appendChild(qEl);
+
+    var row = document.createElement("div");
+    row.className = "text-row";
+    var select = document.createElement("select");
+    select.className = "dd-input";
+    select.setAttribute("aria-label", "Choose your answer");
+    var placeholder = document.createElement("option");
+    placeholder.textContent = "Choose an answer";
+    placeholder.value = "";
+    select.appendChild(placeholder);
+    item.options.forEach(function (opt, oi) {
+      var o = document.createElement("option");
+      o.textContent = opt;
+      o.value = String(oi);
+      select.appendChild(o);
+    });
+    var fb = document.createElement("div");
+    fb.className = "feedback";
+
+    select.addEventListener("change", function () {
+      if (select.value === "") { return; }
+      var isRight = Number(select.value) === item.correct;
+      select.disabled = true;
+      select.classList.add(isRight ? "correct" : "incorrect");
+      fb.textContent = isRight ? "Correct!" : "Not quite. The answer is: " + item.options[item.correct];
+      fb.className = "feedback " + (isRight ? "correct" : "incorrect");
+      bumpScore(isRight ? 1 : 0);
+    });
+
+    row.appendChild(select);
+    wrap.appendChild(row);
+    wrap.appendChild(fb);
+    return wrap;
+  }
+
+  function buildSections() {
+    var host = document.getElementById("sectionsHost");
+    host.innerHTML = "";
+    SECTIONS.forEach(function (sec) {
+      var secEl = document.createElement("section");
+      secEl.className = "qsection";
+
+      var head = document.createElement("div");
+      head.className = "section-head";
+      head.innerHTML = escapeHtml(sec.title) + '<span class="section-hint">' + escapeHtml(sec.hint) + "</span>";
+      secEl.appendChild(head);
+
+      var body = document.createElement("div");
+      body.className = "section-body";
+      sec.items.forEach(function (item, idx) {
+        var node;
+        if (sec.type === "mcq") { node = renderMCQ(item, idx); }
+        else if (sec.type === "text") { node = renderText(item, idx); }
+        else if (sec.type === "truefalse") { node = renderTrueFalse(item, idx); }
+        else if (sec.type === "twochoice") { node = renderTwoChoice(item, idx); }
+        else if (sec.type === "dropdown") { node = renderDropdown(item, idx); }
+        else if (sec.type === "chips") { node = renderChips(item, idx, sec.chips); }
+        body.appendChild(node);
+      });
+      secEl.appendChild(body);
+      host.appendChild(secEl);
+    });
+  }
+
+  function answerFor(sec, item) {
+    if (sec.type === "mcq" || sec.type === "dropdown") {
+      return letter(item.correct) + ") " + item.options[item.correct];
+    }
+    if (sec.type === "text") { return item.answer; }
+    if (sec.type === "truefalse") { return item.correct ? "True" : "False"; }
+    if (sec.type === "twochoice") { return item.correct; }
+    if (sec.type === "chips") { return item.correct; }
+    return "";
+  }
+
+  function buildAnswerKey() {
+    var host = document.getElementById("answerKeyHost");
+    host.innerHTML = "";
+    var details = document.createElement("details");
+    var summary = document.createElement("summary");
+    summary.textContent = "Answer key (click to open)";
+    details.appendChild(summary);
+
+    var h2 = document.createElement("h2");
+    h2.textContent = "Full answer key";
+    details.appendChild(h2);
+
+    SECTIONS.forEach(function (sec) {
+      var h3 = document.createElement("h3");
+      h3.textContent = sec.title;
+      details.appendChild(h3);
+      var answers = sec.items.map(function (item, idx) {
+        return (idx + 1) + "-" + answerFor(sec, item);
+      });
+      var p = document.createElement("p");
+      p.textContent = answers.join(", ") + ".";
+      details.appendChild(p);
+    });
+
+    host.appendChild(details);
+  }
+
+  document.getElementById("tryAgainBtn").addEventListener("click", function () {
+    totalScore = 0;
+    scoreNumEl.textContent = "0";
+    buildSections();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  buildSections();
+  buildAnswerKey();
+})();
+</script>
+</body>
+</html>
